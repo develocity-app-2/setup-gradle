@@ -6,6 +6,10 @@ inputs:
     description: 'Base URL of the Develocity GitHub App'
     required: false
     default: 'https://mortician-fling-outsell.ngrok-free.dev'
+  audience:
+    description: 'Audience for the OIDC token. Defaults to develocity-app-url.'
+    required: false
+    default: ''
 
 runs:
   using: 'node24'
