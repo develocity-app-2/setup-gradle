@@ -2,8 +2,12 @@
 
 A stand-in for `gradle/actions/setup-gradle`, used only by the Develocity GitHub App demo.
 
-It renders a Job Summary reflecting the repository's real status, which it obtains by minting a
-GitHub Actions OIDC token and asking the Develocity GitHub App. It never fails the build.
+It renders a Job Summary reflecting the repository's real status — whether it is connected, and
+which Develocity features are enabled for it — which it obtains by minting a GitHub Actions OIDC
+token and asking the Develocity GitHub App. It never fails the build.
+
+The features are placeholders: nothing about the build changes when they are on. Reporting them is
+the whole effect.
 
 ## Usage
 
@@ -28,7 +32,7 @@ it renders the connect prompt plus a message explaining how to grant the permiss
 
 | State | When | Summary |
 | --- | --- | --- |
-| Connected | App installed and enabled for the repo | "This build is connected to Develocity via `<account>`", plus a link |
+| Connected | App installed and enabled for the repo | "This build is connected to Develocity via `<account>`", a table of every feature and whether it is enabled, and a **Manage features** link |
 | Not configured | App not installed, or repo not enabled | Connect prompt with a CTA |
 | Cannot identify | No `id-token: write` | Connect prompt, plus how to grant the permission |
 | Unreachable | Any failure minting the token or calling the app | "Develocity could not be reached", plus the connect link |
@@ -36,9 +40,12 @@ it renders the connect prompt plus a message explaining how to grant the permiss
 Every path appends to `GITHUB_STEP_SUMMARY` and exits 0; the `unreachable` state is the catch-all
 for anything thrown, including a 401 from the app rejecting the OIDC token.
 
-> The Connected summary's link reads "View in Develocity" but currently points at the app's
-> `/start` page — the same `connectUrl` the other states use. There is no build-scan URL to link to
-> in this mock, so it is the only URL available.
+The feature table is rendered from what the app sends — each feature's id, display name and enabled
+flag — so this action holds no list of its own and a new feature needs no change here. An app that
+sends no `features` field degrades to a plain "connected" summary rather than failing.
+
+The **Manage features** link is the app's `connectUrl`, the same one the other states use: it lands
+on `/start`, which forwards a signed-in user to that repository's settings.
 
 ## Inputs
 
