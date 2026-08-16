@@ -11,9 +11,17 @@ const repo = process.env.GITHUB_REPOSITORY
 const repoId = process.env.GITHUB_REPOSITORY_ID
 const ownerId = process.env.GITHUB_REPOSITORY_OWNER_ID
 
+// `owner/repo/.github/workflows/ci.yml@refs/heads/main` -> the path alone.
+// Unlike the OIDC claims this is present whatever the workflow's permissions
+// are, which is the whole point: the app needs to know which workflow to offer
+// to fix precisely when that workflow could not identify itself.
+const workflowRef = process.env.GITHUB_WORKFLOW_REF || ''
+const workflowMatch = workflowRef.split('@')[0].match(/(\.github\/workflows\/.+)$/)
+const workflow = workflowMatch ? `&workflow=${workflowMatch[1]}` : ''
+
 // Used when we never reach the app; otherwise the app supplies this URL, built
 // from claims it has verified.
-const fallbackConnectUrl = `${appUrl}/start?repo=${repo}&repo_id=${repoId}&owner_id=${ownerId}`
+const fallbackConnectUrl = `${appUrl}/start?repo=${repo}&repo_id=${repoId}&owner_id=${ownerId}${workflow}`
 
 const TIMEOUT_MS = 10000
 
@@ -30,7 +38,7 @@ This build ran \`setup-gradle\` without a Develocity server, so no build data wa
 const cannotIdentify = () => `
 ### This workflow cannot identify itself to Develocity
 
-Add the following to your workflow so Develocity can detect its status automatically:
+It needs \`id-token: write\`. Follow the link above and Develocity will offer to open a pull request adding it, with this workflow already selected. Or add it by hand:
 
 \`\`\`yaml
 permissions:
