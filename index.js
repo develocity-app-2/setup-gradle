@@ -12,7 +12,7 @@ const repo = process.env.GITHUB_REPOSITORY
 const startUrl = `${appUrl}/start?repo=${repo}`
 
 const summary = `
-## Develocity is not configured for this repository
+### Develocity is not configured for this repository
 
 This build ran \`setup-gradle\` without a Develocity server, so no build data was reported and no caching or build scan publishing took place.
 
