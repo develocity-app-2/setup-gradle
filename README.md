@@ -63,7 +63,9 @@ flag — so this action holds no list of its own and a new feature needs no chan
 sends no `features` field degrades to a plain "connected" summary rather than failing.
 
 The **Manage features** link is the app's `connectUrl`, the same one the other states use: it lands
-on `/start`, which forwards a signed-in user to that repository's settings.
+on `/start`, which forwards a signed-in user to that repository's settings. In this state the app
+leaves `&workflow=…` off that URL, so the settings page opens plainly — the workflow parameter is
+what makes the connect dialog open on arrival, and there is nothing to connect here.
 
 ## Inputs
 
