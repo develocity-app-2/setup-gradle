@@ -28,8 +28,10 @@ exactly what it names, so omitting it breaks `actions/checkout`.
 Without `id-token: write` the action still works, but cannot determine the repository's status, so
 it renders the connect prompt plus a message explaining how to grant the permission.
 
-You do not have to add it by hand: the app's settings page for a repository that has not identified
-itself offers to open a pull request adding it to exactly the workflows that call this action.
+You do not have to add it by hand. The connect link carries this workflow's path, taken from
+`GITHUB_WORKFLOW_REF` — which is available whatever the workflow's permissions are, unlike the OIDC
+claims. The app opens its workflow dialog with this workflow already selected, and can open a pull
+request granting the permission.
 
 ## Summary states
 
