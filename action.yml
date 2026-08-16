@@ -2,12 +2,12 @@ name: 'Setup Gradle'
 description: 'Mock setup-gradle for the Develocity GitHub App demo'
 
 inputs:
-  develocity-app-url:
-    description: 'Base URL of the Develocity GitHub App'
+  develocity-url:
+    description: 'Develocity server URL. Without it, setup-gradle does not contact Develocity at all.'
     required: false
-    default: 'https://mortician-fling-outsell.ngrok-free.dev'
+    default: ''
   audience:
-    description: 'Audience for the OIDC token. Defaults to develocity-app-url.'
+    description: 'Audience for the OIDC token. Defaults to the Develocity app URL.'
     required: false
     default: ''
 

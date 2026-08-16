@@ -6,6 +6,10 @@ It renders a Job Summary reflecting the repository's real status — whether it 
 which Develocity features are enabled for it — which it obtains by minting a GitHub Actions OIDC
 token and asking the Develocity GitHub App. It never fails the build.
 
+**Without a `develocity-url` input it does nothing at all** — no token is minted and the app is not
+contacted. Connecting is something a workflow has to say out loud, rather than something that
+follows from the app happening to be installed.
+
 The features are placeholders: nothing about the build changes when they are on. Reporting them is
 the whole effect.
 
@@ -20,26 +24,33 @@ jobs:
   build:
     steps:
       - uses: develocity-app-2/setup-gradle@main
+        with:
+          develocity-url: https://mortician-fling-outsell.ngrok-free.dev
 ```
 
-`contents: read` must be listed explicitly: adding a `permissions:` block restricts the token to
-exactly what it names, so omitting it breaks `actions/checkout`.
+Two things are needed, and they mean different things:
 
-Without `id-token: write` the action still works, but cannot determine the repository's status, so
-it renders the connect prompt plus a message explaining how to grant the permission.
+- **`develocity-url`** is the opt-in. Without it the action contacts nothing. Its value is not used
+  as an address in this demo — the app is always at a fixed URL — it is the workflow declaring that
+  this build should use Develocity.
+- **`id-token: write`** lets the workflow prove which repository it is. `contents: read` must be
+  listed alongside it: adding a `permissions:` block restricts the token to exactly what it names, so
+  omitting it breaks `actions/checkout`.
 
-You do not have to add it by hand. The connect link carries this workflow's path, taken from
+Missing either one, the action renders the connect prompt plus exactly what that run lacks.
+
+You do not have to add them by hand. The connect link carries this workflow's path, taken from
 `GITHUB_WORKFLOW_REF` — which is available whatever the workflow's permissions are, unlike the OIDC
 claims. The app opens its workflow dialog with this workflow already selected, and can open a pull
-request granting the permission.
+request making both changes.
 
 ## Summary states
 
 | State | When | Summary |
 | --- | --- | --- |
-| Connected | App installed and enabled for the repo | "This build is connected to Develocity via `<account>`", a table of every feature and whether it is enabled, and a **Manage features** link |
+| Connected | `develocity-url` and `id-token: write` present, app installed and enabled | "This build is connected to Develocity via `<account>`", a table of every feature and whether it is enabled, and a **Manage features** link |
 | Not configured | App not installed, or repo not enabled | Connect prompt with a CTA |
-| Cannot identify | No `id-token: write` | Connect prompt, plus how to grant the permission |
+| Not opted in | `develocity-url` and/or `id-token: write` missing | Connect prompt, plus exactly what this run lacks — one or both |
 | Unreachable | Any failure minting the token or calling the app | "Develocity could not be reached", plus the connect link |
 
 Every path appends to `GITHUB_STEP_SUMMARY` and exits 0; the `unreachable` state is the catch-all
@@ -56,15 +67,18 @@ on `/start`, which forwards a signed-in user to that repository's settings.
 
 | Input | Default | Description |
 | --- | --- | --- |
-| `develocity-app-url` | `https://mortician-fling-outsell.ngrok-free.dev` | Base URL of the Develocity GitHub App |
+| `develocity-url` | (none) | Develocity server URL. Without it the action contacts nothing. |
 | `audience` | (the app URL) | Audience for the OIDC token |
 
-**The `develocity-app-url` default is a hardcoded ngrok hostname.** It is what lets `demo-app` use
-a bare `uses:` with no `with:` block, and it must match the app's own `PUBLIC_URL` — the app
-derives the OIDC audience it will accept from that value, so a mismatch means every call is
-rejected with a 401 and the summary silently falls back to "could not be reached". If the tunnel
-hostname ever changes, this file is one of
-[four places](https://github.com/develocity-app-2/develocity-github-app#the-public-url-appears-in-four-places)
+**The app's own address is a constant in `index.js`, not an input.** That is deliberate: the connect
+CTA is what an *unconfigured* workflow renders, so the app's address cannot come from configuration
+that does not exist yet. Merging it into `develocity-url` would leave an unconfigured workflow with
+nothing to build the link from.
+
+That constant must match the app's own `PUBLIC_URL` — the app derives the OIDC audience it will
+accept from that value, so a mismatch means every call is rejected with a 401 and the summary
+silently falls back to "could not be reached". If the tunnel hostname ever changes, this file is one
+of [four places](https://github.com/develocity-app-2/develocity-github-app#the-public-url-appears-in-four-places)
 that must be updated together — and the only one that is a code change rather than config.
 
 Override `audience` only if the app is configured with a matching `OIDC_AUDIENCE`.

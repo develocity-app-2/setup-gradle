@@ -1,11 +1,19 @@
 const fs = require('fs')
 
 // GitHub uppercases input names and replaces spaces with underscores, but leaves
-// dashes alone: `develocity-app-url` arrives as `INPUT_DEVELOCITY-APP-URL`.
+// dashes alone: `develocity-url` arrives as `INPUT_DEVELOCITY-URL`.
 const getInput = (name) => process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || ''
 
-const appUrl = getInput('develocity-app-url').replace(/\/+$/, '')
-const audience = getInput('audience') || appUrl
+// Where the Develocity GitHub App lives. A constant rather than an input,
+// because the CTA below is what an *unconfigured* workflow renders: the app's
+// address cannot come from configuration that does not exist yet.
+const APP_URL = 'https://mortician-fling-outsell.ngrok-free.dev'
+
+// The opt-in. Its value is not used as an address -- the app is always at
+// APP_URL -- it is the workflow saying out loud that this build should use
+// Develocity. Without it nothing is contacted at all.
+const develocityUrl = getInput('develocity-url').trim()
+const audience = getInput('audience') || APP_URL
 
 const repo = process.env.GITHUB_REPOSITORY
 const repoId = process.env.GITHUB_REPOSITORY_ID
@@ -21,7 +29,7 @@ const workflow = workflowMatch ? `&workflow=${workflowMatch[1]}` : ''
 
 // Used when we never reach the app; otherwise the app supplies this URL, built
 // from claims it has verified.
-const fallbackConnectUrl = `${appUrl}/start?repo=${repo}&repo_id=${repoId}&owner_id=${ownerId}${workflow}`
+const fallbackConnectUrl = `${APP_URL}/start?repo=${repo}&repo_id=${repoId}&owner_id=${ownerId}${workflow}`
 
 const TIMEOUT_MS = 10000
 
@@ -33,19 +41,38 @@ This build ran \`setup-gradle\` without a Develocity server, so no build data wa
 **[Connect \`${repo}\` to Develocity →](${connectUrl})**
 `
 
-// Shown alongside the message above: without an OIDC token we cannot tell
-// whether the repository is connected, so the headline stays as it is.
-const cannotIdentify = () => `
-### This workflow cannot identify itself to Develocity
+// One block covering whatever this run is actually missing, rather than a
+// separate section per requirement stacked on top of each other.
+const whatIsMissing = (needsUrl, needsToken) => {
+  const parts = []
 
-It needs \`id-token: write\`. Follow the link above and Develocity will offer to open a pull request adding it, with this workflow already selected. Or add it by hand:
+  if (needsUrl) {
+    parts.push(`Point the \`setup-gradle\` step at Develocity:
+
+\`\`\`yaml
+with:
+  develocity-url: ${APP_URL}
+\`\`\``)
+  }
+
+  if (needsToken) {
+    parts.push(`Let the workflow identify itself, by granting it an OIDC token:
 
 \`\`\`yaml
 permissions:
   contents: read
   id-token: write
 \`\`\`
+
+\`contents: read\` is required too — adding a \`permissions:\` block restricts the token to exactly what it lists, which would otherwise break \`actions/checkout\`.`)
+  }
+
+  return `
+Follow the link above and Develocity will offer to open a pull request doing this, with this workflow already selected. Or do it by hand:
+
+${parts.join('\n\n')}
 `
+}
 
 // The app sends names alongside ids, so this renders whatever it is given and
 // needs no list of its own. An older app that sends none degrades to a plain
@@ -94,7 +121,7 @@ async function mintIdToken(requestUrl, requestToken) {
 }
 
 async function fetchStatus(idToken) {
-  const response = await fetch(`${appUrl}/api/repo-status`, {
+  const response = await fetch(`${APP_URL}/api/repo-status`, {
     headers: { Authorization: `Bearer ${idToken}` },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })
@@ -107,9 +134,20 @@ async function buildSummary() {
   const requestToken = process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
 
   // Both are absent unless the workflow grants `id-token: write`.
-  if (!requestUrl || !requestToken) {
-    console.log('No OIDC token available: this workflow lacks id-token: write')
-    return notConfigured(fallbackConnectUrl) + cannotIdentify()
+  const hasToken = Boolean(requestUrl && requestToken)
+
+  // No develocity-url means this workflow has not opted in, so Develocity is
+  // not contacted at all -- not even to mint a token.
+  if (!develocityUrl || !hasToken) {
+    console.log(
+      `Not contacting Develocity: ${[
+        !develocityUrl && 'no develocity-url input',
+        !hasToken && 'this workflow lacks id-token: write',
+      ]
+        .filter(Boolean)
+        .join('; ')}`
+    )
+    return notConfigured(fallbackConnectUrl) + whatIsMissing(!develocityUrl, !hasToken)
   }
 
   const status = await fetchStatus(await mintIdToken(requestUrl, requestToken))
