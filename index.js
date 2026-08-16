@@ -39,12 +39,29 @@ permissions:
 \`\`\`
 `
 
-const connected = (account, url) => `
+// The app sends names alongside ids, so this renders whatever it is given and
+// needs no list of its own. An older app that sends none degrades to a plain
+// "connected" summary rather than throwing.
+const featureTable = (features) => {
+  if (!Array.isArray(features) || features.length === 0) return ''
+
+  const rows = features
+    .map((feature) => `| ${feature.name} | ${feature.enabled ? 'Enabled' : 'Not enabled'} |`)
+    .join('\n')
+
+  return `
+| Feature | Status |
+| --- | --- |
+${rows}
+`
+}
+
+const connected = (account, url, features) => `
 ### Develocity
 
 This build is connected to Develocity via \`${account}\`.
-
-[View in Develocity →](${url})
+${featureTable(features)}
+[Manage features →](${url})
 `
 
 const unreachable = () => `
@@ -88,10 +105,14 @@ async function buildSummary() {
   }
 
   const status = await fetchStatus(await mintIdToken(requestUrl, requestToken))
-  console.log(`Develocity reports connected=${status.connected} for ${status.repository}`)
+  const enabled = (status.features || []).filter((feature) => feature.enabled).map((f) => f.id)
+  console.log(
+    `Develocity reports connected=${status.connected} for ${status.repository}` +
+      `, features enabled: ${enabled.join(', ') || 'none'}`
+  )
 
   return status.connected
-    ? connected(status.account, status.connectUrl || fallbackConnectUrl)
+    ? connected(status.account, status.connectUrl || fallbackConnectUrl, status.features)
     : notConfigured(status.connectUrl || fallbackConnectUrl)
 }
 
