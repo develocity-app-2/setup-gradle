@@ -28,6 +28,9 @@ exactly what it names, so omitting it breaks `actions/checkout`.
 Without `id-token: write` the action still works, but cannot determine the repository's status, so
 it renders the connect prompt plus a message explaining how to grant the permission.
 
+You do not have to add it by hand: the app's settings page for a repository that has not identified
+itself offers to open a pull request adding it to exactly the workflows that call this action.
+
 ## Summary states
 
 | State | When | Summary |
