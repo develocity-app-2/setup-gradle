@@ -37,7 +37,9 @@ Two things are needed, and they mean different things:
   listed alongside it: adding a `permissions:` block restricts the token to exactly what it names, so
   omitting it breaks `actions/checkout`.
 
-Missing either one, the action renders the connect prompt plus exactly what that run lacks.
+Missing either one, the action renders the connect prompt and nothing else. It deliberately does not
+explain how to fix it: the CTA leads to a pull request that makes the change, which is a better
+answer than a snippet to copy.
 
 You do not have to add them by hand. The connect link carries this workflow's path, taken from
 `GITHUB_WORKFLOW_REF` — which is available whatever the workflow's permissions are, unlike the OIDC
@@ -50,7 +52,7 @@ request making both changes.
 | --- | --- | --- |
 | Connected | `develocity-url` and `id-token: write` present, app installed and enabled | "This build is connected to Develocity via `<account>`", a table of every feature and whether it is enabled, and a **Manage features** link |
 | Not configured | App not installed, or repo not enabled | Connect prompt with a CTA |
-| Not opted in | `develocity-url` and/or `id-token: write` missing | Connect prompt, plus exactly what this run lacks — one or both |
+| Not opted in | `develocity-url` and/or `id-token: write` missing | Connect prompt with a CTA |
 | Unreachable | Any failure minting the token or calling the app | "Develocity could not be reached", plus the connect link |
 
 Every path appends to `GITHUB_STEP_SUMMARY` and exits 0; the `unreachable` state is the catch-all

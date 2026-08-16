@@ -34,45 +34,12 @@ const fallbackConnectUrl = `${APP_URL}/start?repo=${repo}&repo_id=${repoId}&owne
 const TIMEOUT_MS = 10000
 
 const notConfigured = (connectUrl) => `
-### Develocity is not configured for this repository
+### Your build could be better and faster with Develocity
 
-This build ran \`setup-gradle\` without a Develocity server, so no build data was reported and no caching or build scan publishing took place.
+This build ran \`setup-gradle\` without connecting to Develocity, missing out on build scans, failure analytics and enhanced caching.
 
 **[Connect \`${repo}\` to Develocity →](${connectUrl})**
 `
-
-// One block covering whatever this run is actually missing, rather than a
-// separate section per requirement stacked on top of each other.
-const whatIsMissing = (needsUrl, needsToken) => {
-  const parts = []
-
-  if (needsUrl) {
-    parts.push(`Point the \`setup-gradle\` step at Develocity:
-
-\`\`\`yaml
-with:
-  develocity-url: ${APP_URL}
-\`\`\``)
-  }
-
-  if (needsToken) {
-    parts.push(`Let the workflow identify itself, by granting it an OIDC token:
-
-\`\`\`yaml
-permissions:
-  contents: read
-  id-token: write
-\`\`\`
-
-\`contents: read\` is required too — adding a \`permissions:\` block restricts the token to exactly what it lists, which would otherwise break \`actions/checkout\`.`)
-  }
-
-  return `
-Follow the link above and Develocity will offer to open a pull request doing this, with this workflow already selected. Or do it by hand:
-
-${parts.join('\n\n')}
-`
-}
 
 // The app sends names alongside ids, so this renders whatever it is given and
 // needs no list of its own. An older app that sends none degrades to a plain
@@ -147,7 +114,7 @@ async function buildSummary() {
         .filter(Boolean)
         .join('; ')}`
     )
-    return notConfigured(fallbackConnectUrl) + whatIsMissing(!develocityUrl, !hasToken)
+    return notConfigured(fallbackConnectUrl)
   }
 
   const status = await fetchStatus(await mintIdToken(requestUrl, requestToken))
