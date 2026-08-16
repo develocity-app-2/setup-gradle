@@ -1,0 +1,12 @@
+name: 'Setup Gradle'
+description: 'Mock setup-gradle for the Develocity GitHub App demo'
+
+inputs:
+  develocity-app-url:
+    description: 'Base URL of the Develocity GitHub App'
+    required: false
+    default: 'https://mortician-fling-outsell.ngrok-free.dev'
+
+runs:
+  using: 'node24'
+  main: 'index.js'
