@@ -1,0 +1,33 @@
+{
+  "_comment": "Demo stand-in for the GitHub Actions cache. See README: 'Where the cached status lives'. Set cachedAgeHours under 24 for the stale-but-usable state, 24 or more for the unreachable state, or delete this file for no cache at all.",
+  "repository": "develocity-app-2/demo-app",
+  "cachedAgeHours": 2,
+  "status": {
+    "repository": "develocity-app-2/demo-app",
+    "connected": true,
+    "account": "develocity-app-2",
+    "connectUrl": "https://mortician-fling-outsell.ngrok-free.dev/start?repo=develocity-app-2/demo-app&repo_id=1335548142&owner_id=317448489",
+    "features": [
+      {
+        "id": "build-scan-publishing",
+        "name": "Build Scan publishing",
+        "enabled": true
+      },
+      {
+        "id": "enhanced-caching",
+        "name": "Enhanced GitHub Actions Caching",
+        "enabled": true
+      },
+      {
+        "id": "test-failure-analytics",
+        "name": "Test failure analytics and flaky test detection",
+        "enabled": false
+      },
+      {
+        "id": "build-cache-optimizer",
+        "name": "Build Cache Optimizer",
+        "enabled": false
+      }
+    ]
+  }
+}
