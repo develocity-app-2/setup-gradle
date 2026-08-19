@@ -1,7 +1,7 @@
 {
   "_comment": "Demo stand-in for the GitHub Actions cache. See README: 'Where the cached status lives'. Set cachedAgeHours under 24 for the stale-but-usable state, 24 or more for the unreachable state, or delete this file for no cache at all.",
   "repository": "develocity-app-2/demo-app",
-  "cachedAgeHours": 30,
+  "cachedAgeHours": 2,
   "status": {
     "repository": "develocity-app-2/demo-app",
     "connected": true,
