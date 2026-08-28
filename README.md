@@ -9,7 +9,7 @@ and asking the app. It never fails the build.
 to say out loud, rather than something that follows from the app happening to be installed.
 
 **This file covers using the action. The design of record is
-[`docs/design/setup-gradle-action.md`](../docs/design/setup-gradle-action.md)** — the summary
+[`docs/design/setup-gradle-action.md`](https://github.com/develocity-app-2/docs/blob/main/design/setup-gradle-action.md)** — the summary
 states, what happens when Develocity cannot be reached, and the reasoning behind the interface.
 
 ---
